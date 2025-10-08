@@ -8,4 +8,5 @@ export type ICell = {
 	type: string;
 	visited: boolean;
 	dispersionRate: number;
+	yVelocity: number;
 };

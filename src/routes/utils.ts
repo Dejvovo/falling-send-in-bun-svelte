@@ -8,7 +8,7 @@ export const initCells = (): ICell[] => {
 		type: 'empty',
 		visited: false,
 		dispersionRate: 0,
-		
+		yVelocity: 1
 	}));
 	return cellsWithCoordinates;
 };

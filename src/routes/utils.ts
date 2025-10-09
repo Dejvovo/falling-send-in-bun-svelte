@@ -3,12 +3,13 @@ import type { ICell, ICoords } from './types';
 
 export const initCells = (): ICell[] => {
 	const cells = new Array(CELL_COUNT).fill(0);
-	const cellsWithCoordinates = cells.map((cell, idx) => ({
+	const cellsWithCoordinates: ICell[] = cells.map((cell, idx) => ({
 		color: 'white',
 		type: 'empty',
 		visited: false,
 		dispersionRate: 0,
-		yVelocity: 1
+		yVelocity: 1,
+		xVelocity: 0
 	}));
 	return cellsWithCoordinates;
 };
@@ -29,9 +30,24 @@ export const coordsToIndex = (coords: ICoords) => {
 	return coords.x + CELLS_PER_ROW * coords.y;
 };
 
+const areCoordinatesOutOfBounds = (coords: ICoords) => {
+	return coords.x >= CELLS_PER_ROW || coords.y >= CELLS_PER_ROW || coords.x < 0 || coords.y < 0;
+};
 export const getBottomCellIdx = (coords: { x: number; y: number }) => {
 	const bottomCellCoords = { x: coords.x, y: coords.y + 1 };
-	if (bottomCellCoords.x >= CELLS_PER_ROW || bottomCellCoords.y >= CELLS_PER_ROW) return undefined;
+	if (areCoordinatesOutOfBounds(bottomCellCoords)) return undefined;
+	return coordsToIndex(bottomCellCoords);
+};
+
+export const getLeftCellIdx = (coords: { x: number; y: number }) => {
+	const bottomCellCoords = { x: coords.x - 1, y: coords.y };
+	if (areCoordinatesOutOfBounds(bottomCellCoords)) return undefined;
+	return coordsToIndex(bottomCellCoords);
+};
+
+export const getRightCellIdx = (coords: { x: number; y: number }) => {
+	const bottomCellCoords = { x: coords.x + 1, y: coords.y };
+	if (areCoordinatesOutOfBounds(bottomCellCoords)) return undefined;
 	return coordsToIndex(bottomCellCoords);
 };
 

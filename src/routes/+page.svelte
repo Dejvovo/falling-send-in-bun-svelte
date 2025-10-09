@@ -2,7 +2,15 @@
 	import { FRAME_DURATION, CELL_SIZE, CANVAS_SIZE } from './constants';
 	import { mouseHandlerUtils } from './mouseHandlerUtils';
 	import type { ICoords } from './types';
-	import { cleanVisited, getBottomCellIdx, indexToCoords, initCells, swap } from './utils';
+	import {
+		cleanVisited,
+		getBottomCellIdx,
+		getLeftCellIdx,
+		getRightCellIdx,
+		indexToCoords,
+		initCells,
+		swap
+	} from './utils';
 
 	const mouseHandler = mouseHandlerUtils();
 	let lastTime = 0;
@@ -29,6 +37,18 @@
 		return { bottomCellIdx: bottomCellIdxResult, distance: cellsChecked };
 	};
 
+	const findCellIdxToSlide = (coords: ICoords) => {
+		let sideCellCoords = coords;
+
+		let shouldSlideLeft = Math.random() > 0.5;
+
+		const sideCellIdx = shouldSlideLeft
+			? getLeftCellIdx(sideCellCoords)
+			: getRightCellIdx(sideCellCoords);
+
+		return sideCellIdx;
+	};
+
 	const step = () => {
 		const timestamp = new Date().getTime();
 		if (timestamp - lastTime < FRAME_DURATION) return;
@@ -36,7 +56,7 @@
 
 		mouseHandler.handleMouse(cells, canvas);
 
-		for (let i = 0; i < cells.length; i++) {
+		for (let i = cells.length - 1; i >= 0; i--) {
 			const cell = cells[i];
 			if (cell.visited) continue;
 			if (cell.type === 'sand') {
@@ -44,10 +64,24 @@
 
 				// Podivam se na blok pod tim jestli je prazdny
 				const { bottomCellIdx, distance } = findCellIdxToFall(indexToCoords(i), cell.yVelocity);
+
 				if (!bottomCellIdx) {
-					// Stop falling
-					console.log('Final velocity: ', cells[i].yVelocity);
-					cells[i].yVelocity = 1;
+					// Bunka ma kam padat, nastavme ji rychlost dolu
+					cell.yVelocity = Math.max(cell.yVelocity, 1);
+					// Pisek dopadl, ted by se mel rozsypat do stran
+					cell.xVelocity = Math.max(cell.yVelocity - 1, 0);
+					cell.yVelocity = 0;
+					if (cell.xVelocity > 0) {
+						const sideCellIdx = findCellIdxToSlide(indexToCoords(i));
+						if (!sideCellIdx) {
+							cell.xVelocity = 0;
+							continue;
+						}
+						// Apply friction
+						cells[sideCellIdx].xVelocity = Math.max(cells[sideCellIdx].xVelocity - 1, 0);
+						cells = swap(cells, i, sideCellIdx);
+						cells[sideCellIdx].visited = true;
+					}
 					continue;
 				}
 
@@ -66,6 +100,7 @@
 	}, FRAME_DURATION);
 
 	const draw = () => {
+		if (!canvas) return;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
 

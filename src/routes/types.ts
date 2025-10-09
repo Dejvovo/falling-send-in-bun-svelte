@@ -9,4 +9,5 @@ export type ICell = {
 	visited: boolean;
 	dispersionRate: number;
 	yVelocity: number;
+	xVelocity: number;
 };
